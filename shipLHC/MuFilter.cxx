@@ -284,7 +284,7 @@ void MuFilter::ConstructGeometry()
 	for (int iplane; iplane < fNVetoPlanes; iplane++){
 	  
           string name = "volVetoPlane_" + to_string(iplane);
-	  volVetoPlane = new TGeoVolume(name.c_str(), VetoPlane, air);
+	  volVetoPlane = new TGeoVolume(name.c_str(), volVetoPlane, air);
 	  volVetoPlane->SetLineColor(kGray);
 	  volVeto->AddNode(volVetoPlane,iplane, new TGeoTranslation(0,-fVetoPlaneShiftY/2. + iplane * fVetoPlaneShiftY, startZ + fVetoPlaneZ/2. + iplane * fVetoPlaneZ));
 
@@ -313,7 +313,7 @@ void MuFilter::ConstructGeometry()
 	TGeoBBox *UpstreamDetBox = new TGeoBBox("UpstreamDetBox",fUpstreamDetX/2,fUpstreamDetY/2,fUpstreamDetZ/2);
 //	TGeoVolume *volUpstreamDet = new TGeoVolume("volUpstreamDet",UpstreamDetBox,air);
 
-	//first loop, adding detector main boxes
+	// create pointer for upstream plane to be re-used
 	TGeoVolume* volUpstreamDet;
 
 	//adding staggered bars, first part, only 11 bars, (single stations, readout on both ends)
