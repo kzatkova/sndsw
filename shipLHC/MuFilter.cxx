@@ -283,19 +283,23 @@ void MuFilter::ConstructGeometry()
 	Double_t startZ = -(fNVetoPlanes * fVetoPlaneZ)/2.;
 	for (int iplane; iplane < fNVetoPlanes; iplane++){
 	  
-          string name = "volVetoPlane_" + to_string(iplane);
-	  volVetoPlane = new TGeoVolume(name.c_str(), volVetoPlane, air);
+      string name = "volVetoPlane_"+to_string(iplane);
+	  volVetoPlane = new TGeoVolume(name.c_str(), VetoPlane, air);
 	  volVetoPlane->SetLineColor(kGray);
 	  volVeto->AddNode(volVetoPlane,iplane, new TGeoTranslation(0,-fVetoPlaneShiftY/2. + iplane * fVetoPlaneShiftY, startZ + fVetoPlaneZ/2. + iplane * fVetoPlaneZ));
 
-	  for (int ibar; ibar < fNVetoBars; ibar++){
-	  
-	    volVetoPlane->AddNode(volVetoBar, 1e+4+iplane*1e+3+ibar, new TGeoTranslation(0,-fVetoPlaneY/2. + fVetoBarY/2 + ibar * fVetoBarY, 0));							 
+	  	//adding veto bars
+	  for (int ibar=0; ibar < fNVetoBars; ibar++){
+
+	  	Double_t dy_vetobar = -fVetoPlaneY/2. + fVetoBarY/2 + ibar * fVetoBarY;
+	  	TGeoTranslation* vetobar_trans = new TGeoTranslation(0, dy_vetobar, 0);
+	    volVetoPlane->AddNode(volVetoBar, 1e+4+iplane*1e+3+ibar, vetobar_trans);							 
 		}
 	}
 	
-	//adding veto bars
-	//Definition of the box containing Fe Blocks + Timing Detector planes 
+	//*****************************************UPSTREAM SECTION*********************************//
+
+		//Definition of the box containing Fe Blocks + Timing Detector planes 
 	TGeoVolumeAssembly *volMuFilter = new TGeoVolumeAssembly("volMuFilter");
 
 	//Iron blocks volume definition
@@ -307,8 +311,6 @@ void MuFilter::ConstructGeometry()
 
 	Double_t dy = 0;
 	Double_t dz = 0;
-	
-	//*****************************************UPSTREAM SECTION*********************************//
 	//Upstream Detector planes definition
 	TGeoBBox *UpstreamDetBox = new TGeoBBox("UpstreamDetBox",fUpstreamDetX/2,fUpstreamDetY/2,fUpstreamDetZ/2);
 //	TGeoVolume *volUpstreamDet = new TGeoVolume("volUpstreamDet",UpstreamDetBox,air);
@@ -340,9 +342,7 @@ void MuFilter::ConstructGeometry()
 	  for (Int_t ibar = 0; ibar < fNUpstreamBars; ibar++){
 	  
 	    Double_t dy_bar = -fUpstreamDetY/2 + fUpstreamBarY/2. + fUpstreamBarY*ibar; 
-	  
 	    TGeoTranslation *yztrans = new TGeoTranslation(0,dy_bar,0);
-	  
 	    volUpstreamDet->AddNode(volMuUpstreamBar,2e+4+l*1e+3+ibar,yztrans);
 			   }
 
