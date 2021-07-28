@@ -85,8 +85,8 @@ with ConfigRegistry.register_config("basic") as c:
         c.MuFilter.DownstreamDetX = c.MuFilter.X
         c.MuFilter.DownstreamDetY = c.MuFilter.FeY
         c.MuFilter.DownstreamDetZ = 3.9*u.cm
-        c.MuFilter.NDownstreamPlanes=3
-
+        c.MuFilter.NDownstreamPlanes=4
+        c.MuFilter.DS4ZGap=8.82*u.cm  
         #upstream bars configuration
         c.MuFilter.NUpstreamBars = 10
         c.MuFilter.UpstreamBarX = c.MuFilter.UpstreamDetX

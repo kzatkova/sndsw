@@ -53,6 +53,8 @@ using std::cout;
 using std::endl;
 using std::to_string;
 using std::string;
+using std::floor;
+using std::pow;
 using namespace ShipUnit;
 
 MuFilter::MuFilter()
@@ -181,7 +183,7 @@ void MuFilter::SetNDownstreamPlanes(Int_t n)
 
 void MuFilter::SetDownstreamBarsDimensions(Double_t x, Double_t y, Double_t z)
 {
-        fDownstreamBarX = x;
+  fDownstreamBarX = x;
 	fDownstreamBarY = y;
 	fDownstreamBarZ = z;
 }
@@ -196,6 +198,11 @@ void MuFilter::SetDownstreamVerticalBarsDimensions(Double_t x, Double_t y, Doubl
 void MuFilter::SetNDownstreamBars(Int_t n)
 {
 	fNDownstreamBars = n;
+}
+
+void MuFilter::SetDS4ZGap(Double_t z)
+{
+	fDS4ZGap = z;
 }
 
 void MuFilter::SetCenterZ(Double_t z)
@@ -374,32 +381,47 @@ void MuFilter::ConstructGeometry()
 	  string name = "volMuDownstreamDet_"+std::to_string(l);
 	  volDownstreamDet = new TGeoVolume(name.c_str(), DownstreamDetBox, air);	 
 	  volDownstreamDet->SetLineColor(kRed+2);
-	  volMuFilter->AddNode(volFeBlock,l+fNUpstreamPlanes,new TGeoTranslation(0,fMuFilterY/2-fFeBlockY/2+dy,-fMuFilterZ/2+fFeBlockZ/2+dz));
-	  volMuFilter->AddNode(volDownstreamDet,l+fNUpstreamPlanes,new TGeoTranslation(0,fMuFilterY/2-fFeBlockY/2+dy,-fMuFilterZ/2+fFeBlockZ+fDownstreamDetZ/2+dz));
-	  dz+=fFeBlockZ+fDownstreamDetZ;
-
+		if (l!=fNDownstreamPlanes-1){			
+			volMuFilter->AddNode(volFeBlock,l+fNUpstreamPlanes+fNVetoPlanes, new TGeoTranslation(0,fMuFilterY/2-fFeBlockY/2+dy,-fMuFilterZ/2+fFeBlockZ/2+dz));
+	  	volMuFilter->AddNode(volDownstreamDet,l+fNUpstreamPlanes+fNVetoPlanes, new TGeoTranslation(0,fMuFilterY/2-fFeBlockY/2+dy,-fMuFilterZ/2+fFeBlockZ+fDownstreamDetZ/2+dz));
+	  	dz+=fFeBlockZ+fDownstreamDetZ;
+		}	
+		else{
+	  	dz+= -fFeBlockZ-fDownstreamDetZ/2 + fDS4ZGap; 
+			volMuFilter->AddNode(volDownstreamDet, l+fNUpstreamPlanes+fNVetoPlanes, new TGeoTranslation(0, fMuFilterY/2-fFeBlockY/2+dy, dz)); 	  	
+		}
 
 	//second loop, adding bars within each detector box
-	  	for (Int_t ibar = 0; ibar < fNDownstreamBars; ibar++){
-	  //adding verizontal bars for y
+		if (l!=fNDownstreamPlanes-1) {
+			for (Int_t ibar = 0; ibar < fNDownstreamBars; ibar++){
+	//adding verizontal bars for y
 
-	      Double_t dy_bar = -fDownstreamDetY/2 + fDownstreamBarY/2. + fDownstreamBarY*ibar; // so just fDownstreamBarY*ibar??
-          Double_t dz_bar_hor = -fDownstreamDetZ/2. + fDownstreamBarZ/2.;
+				Double_t dy_bar = -fDownstreamDetY/2 + fDownstreamBarY/2. + fDownstreamBarY*ibar; // so just fDownstreamBarY*ibar?
+		    Double_t dz_bar_hor = -fDownstreamDetZ/2. + fDownstreamBarZ/2.;
+		    TGeoTranslation *yztrans = new TGeoTranslation(0,dy_bar,dz_bar_hor);
+		    volDownstreamDet->AddNode(volMuDownstreamBar_hor,3e+4+l*1e+3+ibar,yztrans);
+		    //adding vertical bars for x
+			}	
 
-	      TGeoTranslation *yztrans = new TGeoTranslation(0,dy_bar,dz_bar_hor);
-	  
-	      volDownstreamDet->AddNode(volMuDownstreamBar_hor,3e+4+l*1e+3+ibar,yztrans);
-	      //adding vertical bars for x
- 
-			   }
-		for (Int_t i_vbar = 0; i_vbar<fNDownstreamBars; i_vbar++) {
-			
-		  Double_t dx_bar = -fDownstreamDetY/2 + fDownstreamBarX_ver/2. + fDownstreamBarX_ver*i_vbar; //they do not cover all the x region, but only 60 x 60.
-          Double_t dz_bar_ver = -fDownstreamDetZ/2. + 2*fDownstreamBarZ + fDownstreamBarZ/2.;
-			
-		  TGeoTranslation *xztrans = new TGeoTranslation(dx_bar,0,dz_bar_ver);
-		  volDownstreamDet->AddNode(volMuDownstreamBar_ver,3e+4+l*1e+3+i_vbar+60,xztrans);   // I added a 60 here to make each horizontal + vetical
+			for (Int_t i_vbar = 0; i_vbar<fNDownstreamBars; i_vbar++) {
+		// Changed -fDownstreamDetX/2 in the line below. It was -fDownstreamDetY/2
+				Double_t dx_bar = -fDownstreamDetY/2 + fDownstreamBarX_ver/2. + fDownstreamBarX_ver*i_vbar; //they do not cover all the x region, but only 60 x 60.
+		    Double_t dz_bar_ver = -fDownstreamDetZ/2. + 2*fDownstreamBarZ + fDownstreamBarZ/2.;
+				
+				TGeoTranslation *xztrans = new TGeoTranslation(dx_bar,0,dz_bar_ver);
+				volDownstreamDet->AddNode(volMuDownstreamBar_ver,3e+4+l*1e+3+i_vbar+60,xztrans);   // I added a 60 here to make each horizontal + vetical
 			// sub-plane contain bars given detIDs as one plane. So the first bar in the vert. sub plane is the 60th etc. 		  
+			}
+		}
+		else {
+			for (Int_t i_vbar = 0; i_vbar<fNDownstreamBars;i_vbar++){
+				Double_t dx_bar = -fDownstreamDetX/2 + fDownstreamBarX_ver/2. + fDownstreamBarX_ver*i_vbar; //they do not cover all the x region, but only 60 x 60.
+	  		Double_t dz_bar_ver = -fDownstreamDetZ/2. + 2*fDownstreamBarZ + fDownstreamBarZ/2.;
+			
+				TGeoTranslation *xztrans = new TGeoTranslation(dx_bar,0,dz_bar_ver);
+				volDownstreamDet->AddNode(volMuDownstreamBar_ver,3e+4+l*1e+3+i_vbar+60,xztrans);   // I added a 60 here to make each horizontal + vetical
+				// sub-plane contain bars given detIDs as one plane. So the first bar in the vert. sub plane is the 60th etc. 		  
+			}
 		}
 	}
 }
@@ -451,6 +473,192 @@ Bool_t  MuFilter::ProcessHits(FairVolume* vol)
 
 	return kTRUE;
 }
+
+void MuFilter::BarEndPoints(MuFilterPoint* p, TVector3 vtop, TVector3 vbot)
+{   
+  int DetectorID = p->GetDetectorID();
+  // int DetectorID = p.GetDetectorID();
+  int subsystem = floor(DetectorID/1e+4);
+  int plane = floor(DetectorID/1e+3) - 10*subsystem;
+  int bar_number = DetectorID - subsystem*1e+4 - plane*1e+3;
+
+  cout << "subsystem: "<<subsystem<<endl;
+  cout << "plane: "<<plane<<endl;
+  cout << "bar_number: "<<bar_number<<endl;
+
+  TString path = "FAIRGeom/cave_1/";
+  //int digit_1 = floor(fDetectorID/1e+4);
+    //cout << "digit_1: " << digit_1 << endl;
+    switch(subsystem) {
+      case 1: 
+        path.Append("volVeto_1/");
+        cout << path<<endl;
+        //int digit_2 = floor(fDetectorID/1e+3) - 10;
+        if (plane == 0) {
+          path.Append("volVetoPlane_0_0/volVetoBar_10");
+          //int bar_number = fDetectorID- digit_1*1e+4 - digit_2*1e+3;
+          cout << "bar_number: "<<bar_number << endl;
+          if ( bar_number == 0 ) { 
+            path.Append("000");
+            }
+          else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+          }
+        else if (plane == 1) {
+          path.Append("volVetoPlane_1_1/volVetoBar_11");
+          //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+          cout << "bar_number: "<< bar_number << endl;
+                    if ( bar_number == 0 ) { 
+            path.Append("000");
+            }
+          else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+          }
+        cout << path<< endl;
+        break;
+      
+      case 2: 
+        path.Append("volMuFilter_1/");
+        cout << path<<endl;
+        if (plane == 0) {
+          path.Append("volMuUpstreamDet_0_2/volMuUpstreamBar_20");
+          cout << "bar_number: "<<bar_number << endl;
+          if ( bar_number == 0 ) { 
+            path.Append("000");
+            }
+          else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+          }
+        else if (plane == 1) {
+          path.Append("volVetoPlane_1_3/volVetoBar_21");
+          //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+          cout << "bar_number: "<< bar_number << endl;
+                    if ( bar_number == 0 ) { 
+            path.Append("000");
+            }
+          else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+          }
+        else if (plane == 2) {
+          path.Append("volVetoPlane_2_4/volVetoBar_22");
+          //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+          cout << "bar_number: "<< bar_number << endl;
+                    if ( bar_number == 0 ) { 
+            path.Append("000");
+            }
+          else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+          }
+        else if (plane == 3) {
+          path.Append("volVetoPlane_3_5/volVetoBar_23");
+          //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+          cout << "bar_number: "<< bar_number << endl;
+                    if ( bar_number == 0 ) { 
+            path.Append("000");
+            }
+          else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+          }
+        else if (plane == 4) {
+          path.Append("volVetoPlane_4_6/volVetoBar_24");
+          //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+          cout << "bar_number: "<< bar_number << endl;
+                    if ( bar_number == 0 ) { 
+            path.Append("000");
+            }
+          else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+          }                                     
+        break;
+
+      case 3: 
+        path.Append("volMuFilter_1/");
+        cout << path<<endl;  
+        if (plane == 0) {
+          path.Append("volMuDownstreamDet_0_5/volMuDownstreamBar_");
+          //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+          cout << "bar_number: "<<bar_number << endl;
+          if ( bar_number < 60 ) { 
+            if (bar_number < 10) {path.Append("hor_00"); path.Append(to_string(bar_number));}
+            else if (bar_number >9 and bar_number<60) {path.Append("hor_0"); path.Append(to_string(bar_number));}
+            }
+          else {
+            if (bar_number < 100) {path.Append("ver_0"); path.Append(to_string(bar_number));}
+            else { path.Append("ver_"+to_string(bar_number));}
+          }
+          }
+        cout << path << endl;
+        break;
+        if (plane == 1) {
+          path.Append("volMuDownstreamDet_1_6/volMuDownstreamBar_");
+          //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+          cout << "bar_number: "<<bar_number << endl;
+          if ( bar_number < 60 ) { 
+            if (bar_number < 10) {path.Append("hor_00"); path.Append(to_string(bar_number));}
+            else if (bar_number >9 and bar_number<60) {path.Append("hor_0"); path.Append(to_string(bar_number));}
+            }
+          else {
+            if (bar_number < 100) {path.Append("ver_0"); path.Append(to_string(bar_number));}
+            else { path.Append("ver_"+to_string(bar_number));}
+          }
+          }
+        cout << path << endl;
+        break;
+        if (plane == 2) {
+          path.Append("volMuDownstreamDet_2_7/volMuDownstreamBar_");
+          //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+          cout << "bar_number: "<<bar_number << endl;
+          if ( bar_number < 60 ) { 
+            if (bar_number < 10) {path.Append("hor_00"); path.Append(to_string(bar_number));}
+            else if (bar_number >9 and bar_number<60) {path.Append("hor_0"); path.Append(to_string(bar_number));}
+            }
+          else {
+            if (bar_number < 100) {path.Append("ver_0"); path.Append(to_string(bar_number));}
+            else { path.Append("ver_"+to_string(bar_number));}
+          }
+          }
+        cout << path << endl;
+        break;  
+    }    
+  
+    TGeoNavigator* nav = gGeoManager->GetCurrentNavigator();
+    nav->cd(path);
+
+    TGeoNode* W = nav->GetCurrentNode();
+    TGeoBBox* S = dynamic_cast<TGeoBBox*>(W->GetVolume()->GetShape());
+
+    if (subsystem == 3 and bar_number >59){
+
+      Double_t top[3] = {0,S->GetDY(), 0}; // Why z? Surely the straws go in x or y?
+      Double_t bot[3] = {0,-S->GetDY(),0};
+      Double_t Gtop[3],Gbot[3];
+      nav->LocalToMaster(top, Gtop);   nav->LocalToMaster(bot, Gbot);
+      vtop.SetXYZ(Gtop[0],Gtop[1],Gtop[2]);
+      vbot.SetXYZ(Gbot[0],Gbot[1],Gbot[2]);
+      // Find distances from MCPoint centre to top of bar 
+      Double_t distance_to_top_of_bar =  pow(pow(p->GetX() - vtop.X(), 2) + pow(p->GetY() - vtop.Y(), 2) + pow(p->GetZ() - vtop.Z(), 2)   , 0.5);
+			//Double_t distance_to_top_of_bar =  pow(pow(p.GetX() - vtop.X(), 2) + pow(p.GetY() - vtop.Y(), 2) + pow(p.GetZ() - vtop.Z(), 2)   , 0.5);      
+
+    }
+    else {
+      Double_t posXend[3] = {S->GetDX(),0,0};
+      Double_t negXend[3] = {-S->GetDZ(),0,0};
+      Double_t GposXend[3],GnegXend[3];
+      nav->LocalToMaster(posXend, GposXend);   nav->LocalToMaster(negXend, GnegXend);
+      vtop.SetXYZ(GposXend[0],GposXend[1],GposXend[2]);
+      vbot.SetXYZ(GnegXend[0],GnegXend[1],GnegXend[2]);
+      // Find distances from MCPoint centre to top of bar 
+      Double_t distance_to_posXend =  pow(pow(p->GetX() - vtop.X(), 2) + pow(p->GetY() - vtop.Y(), 2) + pow(p->GetZ() - vtop.Z(), 2), 0.5);      
+      Double_t distance_to_negXend =  pow(pow(p->GetX() - vbot.X(), 2) + pow(p->GetY() - vbot.Y(), 2) + pow(p->GetZ() - vbot.Z(), 2), 0.5);     
+
+      //Double_t distance_to_posXend =  pow(pow(p.GetX() - vtop.X(), 2) + pow(p.GetY() - vtop.Y(), 2) + pow(p.GetZ() - vtop.Z(), 2), 0.5);      
+      //Double_t distance_to_negXend =  pow(pow(p.GetX() - vbot.X(), 2) + pow(p.GetY() - vbot.Y(), 2) + pow(p.GetZ() - vbot.Z(), 2), 0.5);     
+            
+
+    }
+}
+
+
 
 void MuFilter::EndOfEvent()
 {

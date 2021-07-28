@@ -648,8 +648,6 @@ class ShipDigiReco:
    return list_neighbours
 
 
-
-
  def digitizeTimeDet(self):
    index = 0
    hitsPerDetId = {}

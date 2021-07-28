@@ -77,7 +77,8 @@ def configure(run,ship_geo,Gfield=''):
  MuFilter.SetDownstreamBarsDimensions(ship_geo.MuFilter.DownstreamBarX, ship_geo.MuFilter.DownstreamBarY, ship_geo.MuFilter.DownstreamBarZ)
  MuFilter.SetDownstreamVerticalBarsDimensions(ship_geo.MuFilter.DownstreamBarX_ver, ship_geo.MuFilter.DownstreamBarY_ver, ship_geo.MuFilter.DownstreamBarZ_ver)
  MuFilter.SetNDownstreamBars(ship_geo.MuFilter.NDownstreamBars)
-
+ MuFilter.SetDS4ZGap(ship_geo.MuFilter.DS4ZGap)
+         #SetDS4ZGap
  MuFilter.SetCenterZ(ship_geo.MuFilter.Zcenter)
  MuFilter.SetXYDisplacement(ship_geo.MuFilter.ShiftX, ship_geo.MuFilter.ShiftY)
  MuFilter.SetSlope(ship_geo.MuFilter.Slope)

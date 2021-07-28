@@ -20,8 +20,10 @@ class MuFilterHit : public ShipHit
      *@param flag      True/False, false if there is another hit with smaller tdc 
      **/
     MuFilterHit(Int_t detID, Float_t tdc);
-    MuFilterHit(MuFilterPoint* p, Double_t t0);
-    void BarEndPoints(TVector3 &vbot, TVector3 &vtop);  
+    // MuFilterHit(MuFilterPoint* p, Double_t t0 = 0.0);
+    MuFilterHit(MuFilterPoint* p);
+
+    void BarEndPoints(MuFilterPoint* p, TVector3 vtop, TVector3 vbot);  
 /** Destructor **/
     virtual ~MuFilterHit();
 

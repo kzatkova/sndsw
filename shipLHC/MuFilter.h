@@ -13,6 +13,7 @@
 
 #include <string>                       // for string
 
+
 #include "TVector3.h"
 #include "TLorentzVector.h"
 
@@ -54,10 +55,14 @@ class MuFilter : public FairDetector
 		void SetDownstreamPlanesDimensions(Double_t, Double_t, Double_t);
 		void SetNDownstreamPlanes(Int_t);
 		void SetDownstreamBarsDimensions(Double_t, Double_t, Double_t);
-                void SetDownstreamVerticalBarsDimensions(Double_t, Double_t, Double_t);
+        	void SetDownstreamVerticalBarsDimensions(Double_t, Double_t, Double_t);
 		void SetNDownstreamBars(Int_t);
+		void SetDS4ZGap(Double_t);
 
 		
+
+		/** Determine path to sci bar and the global coords of bar ends */
+		void BarEndPoints(MuFilterPoint* p, TVector3 vtop, TVector3 vbot);
 
 
 		/**      Initialization of the detector is done here    */
@@ -158,6 +163,7 @@ class MuFilter : public FairDetector
 			Double_t fDownstreamBarZ;			
 
 		        Int_t fNDownstreamBars;   //|Number of staggered bars
+		    Double_t fDS4ZGap;
 
   			Double_t fDownstreamBarX_ver; //|Staggered bars of upstream section, vertical bars for x measurement
 			Double_t fDownstreamBarY_ver;

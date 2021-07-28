@@ -1,5 +1,6 @@
 #include "MuFilterHit.h"
 #include "MuFilter.h"
+#include "MuFilterPoint.h"
 #include "TVector3.h"
 #include "FairRun.h"
 #include "FairRunSim.h"
@@ -16,8 +17,10 @@ using std::cout;
 using std::endl;
 using std::pow;
 using std::floor;
+using std::to_string;
 #include <string> 
 
+Double_t attenuationlength = 1.00; // Change this 
 Double_t speedOfLight = TMath::C() *100./1000000000.0 ; // from m/sec to cm/ns
 // -----   Default constructor   -------------------------------------------
 MuFilterHit::MuFilterHit()
@@ -32,167 +35,178 @@ MuFilterHit::MuFilterHit(Int_t detID, Float_t tdc)
  flag = true;
 }
 // -----   constructor from MuFilterPoint   ------------------------------------------
-MuFilterHit::MuFilterHit(MuFilterPoint* p, Double_t t0)
+MuFilterHit::MuFilterHit(MuFilterPoint* p)
+
   : ShipHit()
 {
      TVector3 start = TVector3();
      TVector3 stop  = TVector3();
      fDetectorID = p->GetDetectorID();
-     MuFilter* module = dynamic_cast<MuFilter*> (FairRunSim::Instance()->GetListOfModules()->FindObject("MuFilter") );
-     //Double_t v_drift       = module->StrawVdrift();
-     //Double_t sigma_spatial = module->StrawSigmaSpatial(); // What do these do?? 
-     module->BarEndPoints(fDetectorID,start,stop);
-     //Double_t t_drift = fabs( gRandom->Gaus( p->dist2Wire(), sigma_spatial ) )/v_drift;
-     //fdigi = t0 + p->GetTime() + t_drift + ( stop[0]-p->GetX() )/ speedOfLight; // What is t_drift
+     // cout << fDetectorID << endl;
+     // MuFilter* module = dynamic_cast<MuFilter*> (FairRunSim::Instance()->GetListOfModules()->FindObject("MuFilter") );
+     // FairRunSim* fairrunsiminstance = FairRunSim::Instance();
+
+     // cout << fairrunsiminstance->GetListOfModules() << endl;
+     // //Double_t v_drift       = module->StrawVdrift();
+     // //Double_t sigma_spatial = module->StrawSigmaSpatial(); 
+     
+
+     //module->BarEndPoints(p, start, stop);
+     // //Double_t t_drift = fabs( gRandom->Gaus( p->dist2Wire(), sigma_spatial ) )/v_drift;
+     // //fdigi = t0 + p->GetTime() + t_drift + ( stop[0]-p->GetX() )/ speedOfLight; // What is t_drift
      
      flag = true;
+
+     
 }
 
-void MuFilterHit::BarEndPoints(TVector3 &vbot, TVector3 &vtop) // Would be best to remove these params
-{   
+void MuFilterHit::BarEndPoints(MuFilterPoint* p, TVector3 vtop, TVector3 vbot) 
+{
 
-  int subsystem = floor(detID_first/1e+4);
-  int plane = floor(detID_first/1e+3) - 10*subsystem;
-  int bar_number = detID_first - subsystem*1e+4 - plane*1e+3;
+  int subsystem = floor(fDetectorID/1e+4);
+  int plane = floor(fDetectorID/1e+3) - 10*subsystem;
+  int bar_number = fDetectorID - subsystem*1e+4 - plane*1e+3;
 
   cout << "subsystem: "<<subsystem<<endl;
   cout << "plane: "<<plane<<endl;
   cout << "bar_number: "<<bar_number<<endl;
 
-  string path = "FAIRGeom/cave_1/";
-  //int digit_1 = floor(detID_first/1e+4);
-    //cout << "digit_1: " << digit_1 << endl;
-    switch(subsystem) {
-      case 1: 
-        path.append("volVeto_1/");
-        cout << path<<endl;
-        //int digit_2 = floor(detID_first/1e+3) - 10;
-        if (plane == 0) {
-          path.append("volVetoPlane_0_0/volVetoBar_10");
-          //int bar_number = detID_first - digit_1*1e+4 - digit_2*1e+3;
-          cout << "bar_number: "<<bar_number << endl;
-          if ( bar_number == 0 ) { 
-            path.append("000");
-            }
-          else if (bar_number <9) {path.append("00"); path.append(to_string(bar_number));}
-          else if (bar_number >9) {path.append("0"); path.append(to_string(bar_number));}
-          }
-        else if (plane == 1) {
-          path.append("volVetoPlane_1_1/volVetoBar_11");
-          //int bar_number = detID_first - digit_1*1e+4 - digit_2*1e+3;
-          cout << "bar_number: "<< bar_number << endl;
-                    if ( bar_number == 0 ) { 
-            path.append("000");
-            }
-          else if (bar_number <9) {path.append("00"); path.append(to_string(bar_number));}
-          else if (bar_number >9) {path.append("0"); path.append(to_string(bar_number));}
-          }
-        cout << path<< endl;
-        break;
-      
-      case 2: 
-        path.append("volMuFilter_1/");
-        cout << path<<endl;
-        if (plane == 0) {
-          path.append("volMuUpstreamDet_0_2/volMuUpstreamBar_20");
-          cout << "bar_number: "<<bar_number << endl;
-          if ( bar_number == 0 ) { 
-            path.append("000");
-            }
-          else if (bar_number <9) {path.append("00"); path.append(to_string(bar_number));}
-          else if (bar_number >9) {path.append("0"); path.append(to_string(bar_number));}
-          }
-        else if (plane == 1) {
-          path.append("volVetoPlane_1_3/volVetoBar_21");
-          //int bar_number = detID_first - digit_1*1e+4 - digit_2*1e+3;
-          cout << "bar_number: "<< bar_number << endl;
-                    if ( bar_number == 0 ) { 
-            path.append("000");
-            }
-          else if (bar_number <9) {path.append("00"); path.append(to_string(bar_number));}
-          else if (bar_number >9) {path.append("0"); path.append(to_string(bar_number));}
-          }
-        else if (plane == 2) {
-          path.append("volVetoPlane_2_4/volVetoBar_22");
-          //int bar_number = detID_first - digit_1*1e+4 - digit_2*1e+3;
-          cout << "bar_number: "<< bar_number << endl;
-                    if ( bar_number == 0 ) { 
-            path.append("000");
-            }
-          else if (bar_number <9) {path.append("00"); path.append(to_string(bar_number));}
-          else if (bar_number >9) {path.append("0"); path.append(to_string(bar_number));}
-          }
-        else if (plane == 3) {
-          path.append("volVetoPlane_3_5/volVetoBar_23");
-          //int bar_number = detID_first - digit_1*1e+4 - digit_2*1e+3;
-          cout << "bar_number: "<< bar_number << endl;
-                    if ( bar_number == 0 ) { 
-            path.append("000");
-            }
-          else if (bar_number <9) {path.append("00"); path.append(to_string(bar_number));}
-          else if (bar_number >9) {path.append("0"); path.append(to_string(bar_number));}
-          }
-        else if (plane == 4) {
-          path.append("volVetoPlane_4_6/volVetoBar_24");
-          //int bar_number = detID_first - digit_1*1e+4 - digit_2*1e+3;
-          cout << "bar_number: "<< bar_number << endl;
-                    if ( bar_number == 0 ) { 
-            path.append("000");
-            }
-          else if (bar_number <9) {path.append("00"); path.append(to_string(bar_number));}
-          else if (bar_number >9) {path.append("0"); path.append(to_string(bar_number));}
-          }                                     
-        break;
-
-      case 3: 
-        path.append("volMuFilter_1/");
-        cout << path<<endl;  
-        if (plane == 0) {
-          path.append("volMuDownstreamDet_0_5/volMuDownstreamBar_");
-          //int bar_number = detID_first - digit_1*1e+4 - digit_2*1e+3;
-          cout << "bar_number: "<<bar_number << endl;
-          if ( bar_number < 60 ) { 
-            if (bar_number < 10) {path.append("hor_00"); path.append(to_string(bar_number));}
-            else if (bar_number >9 and bar_number<60) {path.append("hor_0"); path.append(to_string(bar_number));}
-            }
-          else {
-            if (bar_number < 100) {path.append("ver_0"); path.append(to_string(bar_number));}
-            else { path.append("ver_"+to_string(bar_number));}
-          }
-          }
-        cout << path << endl;
-        break;
-        if (plane == 1) {
-          path.append("volMuDownstreamDet_1_6/volMuDownstreamBar_");
-          //int bar_number = detID_first - digit_1*1e+4 - digit_2*1e+3;
-          cout << "bar_number: "<<bar_number << endl;
-          if ( bar_number < 60 ) { 
-            if (bar_number < 10) {path.append("hor_00"); path.append(to_string(bar_number));}
-            else if (bar_number >9 and bar_number<60) {path.append("hor_0"); path.append(to_string(bar_number));}
-            }
-          else {
-            if (bar_number < 100) {path.append("ver_0"); path.append(to_string(bar_number));}
-            else { path.append("ver_"+to_string(bar_number));}
-          }
-          }
-        cout << path << endl;
-        break;
-        if (plane == 2) {
-          path.append("volMuDownstreamDet_2_7/volMuDownstreamBar_");
-          //int bar_number = detID_first - digit_1*1e+4 - digit_2*1e+3;
-          cout << "bar_number: "<<bar_number << endl;
-          if ( bar_number < 60 ) { 
-            if (bar_number < 10) {path.append("hor_00"); path.append(to_string(bar_number));}
-            else if (bar_number >9 and bar_number<60) {path.append("hor_0"); path.append(to_string(bar_number));}
-            }
-          else {
-            if (bar_number < 100) {path.append("ver_0"); path.append(to_string(bar_number));}
-            else { path.append("ver_"+to_string(bar_number));}
-          }
-          }
-        cout << path << endl;
-        break;      
+  TString path = "FAIRGeom/cave_1/";
+  switch(subsystem) {    
   
+  case 1: 
+      path.Append("volVeto_1/");
+      cout << path<<endl;
+      //int digit_2 = floor(fDetectorID/1e+3) - 10;
+      if (plane == 0) {
+        path.Append("volVetoPlane_0_0/volVetoBar_10");
+        //int bar_number = fDetectorID- digit_1*1e+4 - digit_2*1e+3;
+        cout << "bar_number: "<<bar_number << endl;
+        if ( bar_number == 0 ) { 
+          path.Append("000");
+          }
+        else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+        else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+        }
+      else if (plane == 1) {
+        path.Append("volVetoPlane_1_1/volVetoBar_11");
+        //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+        cout << "bar_number: "<< bar_number << endl;
+                  if ( bar_number == 0 ) { 
+          path.Append("000");
+          }
+        else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+        else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+        }
+      cout << path<< endl;
+      break;
+    
+    case 2: 
+      path.Append("volMuFilter_1/");
+      cout << path<<endl;
+      if (plane == 0) {
+        path.Append("volMuUpstreamDet_0_2/volMuUpstreamBar_20");
+        cout << "bar_number: "<<bar_number << endl;
+        if ( bar_number == 0 ) { 
+          path.Append("000");
+          }
+        else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+        else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+        }
+      else if (plane == 1) {
+        path.Append("volVetoPlane_1_3/volVetoBar_21");
+        //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+        cout << "bar_number: "<< bar_number << endl;
+                  if ( bar_number == 0 ) { 
+          path.Append("000");
+          }
+        else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+        else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+        }
+      else if (plane == 2) {
+        path.Append("volVetoPlane_2_4/volVetoBar_22");
+        //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+        cout << "bar_number: "<< bar_number << endl;
+                  if ( bar_number == 0 ) { 
+          path.Append("000");
+          }
+        else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+        else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+        }
+      else if (plane == 3) {
+        path.Append("volVetoPlane_3_5/volVetoBar_23");
+        //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+        cout << "bar_number: "<< bar_number << endl;
+                  if ( bar_number == 0 ) { 
+          path.Append("000");
+          }
+        else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+        else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+        }
+      else if (plane == 4) {
+        path.Append("volVetoPlane_4_6/volVetoBar_24");
+        //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+        cout << "bar_number: "<< bar_number << endl;
+                  if ( bar_number == 0 ) { 
+          path.Append("000");
+          }
+        else if (bar_number <9) {path.Append("00"); path.Append(to_string(bar_number));}
+        else if (bar_number >9) {path.Append("0"); path.Append(to_string(bar_number));}
+        }                                     
+      break;
+
+    case 3: 
+      path.Append("volMuFilter_1/");
+      cout << path<<endl;  
+      if (plane == 0) {
+        path.Append("volMuDownstreamDet_0_5/volMuDownstreamBar_");
+        //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+        cout << "bar_number: "<<bar_number << endl;
+        if ( bar_number < 60 ) { 
+          if (bar_number < 10) {path.Append("hor_00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9 and bar_number<60) {path.Append("hor_0"); path.Append(to_string(bar_number));}
+          }
+        else {
+          if (bar_number < 100) {path.Append("ver_0"); path.Append(to_string(bar_number));}
+          else { path.Append("ver_"+to_string(bar_number));}
+        }
+        }
+      cout << path << endl;
+      break;
+      if (plane == 1) {
+        path.Append("volMuDownstreamDet_1_6/volMuDownstreamBar_");
+        //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+        cout << "bar_number: "<<bar_number << endl;
+        if ( bar_number < 60 ) { 
+          if (bar_number < 10) {path.Append("hor_00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9 and bar_number<60) {path.Append("hor_0"); path.Append(to_string(bar_number));}
+          }
+        else {
+          if (bar_number < 100) {path.Append("ver_0"); path.Append(to_string(bar_number));}
+          else { path.Append("ver_"+to_string(bar_number));}
+        }
+        }
+      cout << path << endl;
+      break;
+      if (plane == 2) {
+        path.Append("volMuDownstreamDet_2_7/volMuDownstreamBar_");
+        //int bar_number = fDetectorID - digit_1*1e+4 - digit_2*1e+3;
+        cout << "bar_number: "<<bar_number << endl;
+        if ( bar_number < 60 ) { 
+          if (bar_number < 10) {path.Append("hor_00"); path.Append(to_string(bar_number));}
+          else if (bar_number >9 and bar_number<60) {path.Append("hor_0"); path.Append(to_string(bar_number));}
+          }
+        else {
+          if (bar_number < 100) {path.Append("ver_0"); path.Append(to_string(bar_number));}
+          else { path.Append("ver_"+to_string(bar_number));}
+        }
+        }
+      cout << path << endl;
+      break;
+  }
+
+    TGeoNavigator* nav = gGeoManager->GetCurrentNavigator();
+    nav->cd(path);
     TGeoNode* W = nav->GetCurrentNode();
     TGeoBBox* S = dynamic_cast<TGeoBBox*>(W->GetVolume()->GetShape());
 
@@ -205,7 +219,7 @@ void MuFilterHit::BarEndPoints(TVector3 &vbot, TVector3 &vtop) // Would be best 
       vtop.SetXYZ(Gtop[0],Gtop[1],Gtop[2]);
       vbot.SetXYZ(Gbot[0],Gbot[1],Gbot[2]);
       // Find distances from MCPoint centre to top of bar 
-      TVector3 distance_to_top_of_bar =  pow(pow(p.GetX() - vtop[0], 2) + pow(p.GetY() - vtop[1], 2) + pow(p.GetZ() - vtop[2], 2)   , 0.5)
+      Double_t distance_to_top_of_bar =  pow(pow(p->GetX() - vtop.X(), 2) + pow(p->GetY() - vtop.Y(), 2) + pow(p->GetZ() - vtop.Z(), 2)   , 0.5);
 
     }
     else {
@@ -216,12 +230,28 @@ void MuFilterHit::BarEndPoints(TVector3 &vbot, TVector3 &vtop) // Would be best 
       vtop.SetXYZ(GposXend[0],GposXend[1],GposXend[2]);
       vbot.SetXYZ(GnegXend[0],GnegXend[1],GnegXend[2]);
       // Find distances from MCPoint centre to top of bar 
-      TVector3 distance_to_posXend =  pow(pow(p.GetX() - vtop[0], 2) + pow(p.GetY() - vtop[1], 2) + pow(p.GetZ() - vtop[2], 2)   , 0.5)      
-      TVector3 distance_to_negXend =  pow(pow(p.GetX() - vbot[0], 2) + pow(p.GetY() - vbot[1], 2) + pow(p.GetZ() - vbot[2], 2)   , 0.5)      
+
+      Double_t distance_to_posXend =  pow(pow(p->GetX() - vtop.X(), 2) + pow(p->GetY() - vtop.Y(), 2) + pow(p->GetZ() - vtop.Z(), 2), 0.5);      
+      Double_t distance_to_negXend =  pow(pow(p->GetX() - vbot.X(), 2) + pow(p->GetY() - vbot.Y(), 2) + pow(p->GetZ() - vbot.Z(), 2), 0.5);     
             
 
     }
+
+
 }
+
+// void MuFilterHit::EnergyValues(MuFilterPoint* p) 
+// {
+
+// }
+
+// Double_t MuFilterHit::EnergyAttenuation(MuFilterPoint* p)
+// {
+//   Double_t Eloss = p->GetEloss();
+//   Double_t res_energy = Eloss - pow(e, -1*attenuationlength)
+  
+// }
+
 
 // -------------------------------------------------------------------------
 
