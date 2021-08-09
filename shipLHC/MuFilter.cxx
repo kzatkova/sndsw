@@ -190,7 +190,7 @@ void MuFilter::SetDownstreamBarsDimensions(Double_t x, Double_t y, Double_t z)
 
 void MuFilter::SetDownstreamVerticalBarsDimensions(Double_t x, Double_t y, Double_t z)
 {
-        fDownstreamBarX_ver = x;
+  fDownstreamBarX_ver = x;
 	fDownstreamBarY_ver = y;
 	fDownstreamBarZ_ver = z;
 }
@@ -352,9 +352,7 @@ void MuFilter::ConstructGeometry()
 	    TGeoTranslation *yztrans = new TGeoTranslation(0,dy_bar,0);
 	    volUpstreamDet->AddNode(volMuUpstreamBar,2e+4+l*1e+3+ibar,yztrans);
 			   }
-
-	}
-	           
+	}	           
 
 	//*************************************DOWNSTREAM (high granularity) SECTION*****************//
 	//Downstream Detector planes definition
@@ -397,16 +395,16 @@ void MuFilter::ConstructGeometry()
 	//adding verizontal bars for y
 
 				Double_t dy_bar = -fDownstreamDetY/2 + fDownstreamBarY/2. + fDownstreamBarY*ibar; // so just fDownstreamBarY*ibar?
-		    Double_t dz_bar_hor = -fDownstreamDetZ/2. + fDownstreamBarZ/2.;
-		    TGeoTranslation *yztrans = new TGeoTranslation(0,dy_bar,dz_bar_hor);
-		    volDownstreamDet->AddNode(volMuDownstreamBar_hor,3e+4+l*1e+3+ibar,yztrans);
+		    	Double_t dz_bar_hor = -fDownstreamDetZ/2. + fDownstreamBarZ/2.;
+		    	TGeoTranslation *yztrans = new TGeoTranslation(0,dy_bar,dz_bar_hor);
+		    	volDownstreamDet->AddNode(volMuDownstreamBar_hor,3e+4+l*1e+3+ibar,yztrans);
 		    //adding vertical bars for x
 			}	
 
 			for (Int_t i_vbar = 0; i_vbar<fNDownstreamBars; i_vbar++) {
 		// Changed -fDownstreamDetX/2 in the line below. It was -fDownstreamDetY/2
 				Double_t dx_bar = -fDownstreamDetY/2 + fDownstreamBarX_ver/2. + fDownstreamBarX_ver*i_vbar; //they do not cover all the x region, but only 60 x 60.
-		    Double_t dz_bar_ver = -fDownstreamDetZ/2. + 2*fDownstreamBarZ + fDownstreamBarZ/2.;
+		    	Double_t dz_bar_ver = -fDownstreamDetZ/2. + 2*fDownstreamBarZ + fDownstreamBarZ/2.;
 				
 				TGeoTranslation *xztrans = new TGeoTranslation(dx_bar,0,dz_bar_ver);
 				volDownstreamDet->AddNode(volMuDownstreamBar_ver,3e+4+l*1e+3+i_vbar+60,xztrans);   // I added a 60 here to make each horizontal + vetical
@@ -416,7 +414,7 @@ void MuFilter::ConstructGeometry()
 		else {
 			for (Int_t i_vbar = 0; i_vbar<fNDownstreamBars;i_vbar++){
 				Double_t dx_bar = -fDownstreamDetX/2 + fDownstreamBarX_ver/2. + fDownstreamBarX_ver*i_vbar; //they do not cover all the x region, but only 60 x 60.
-	  		Double_t dz_bar_ver = -fDownstreamDetZ/2. + 2*fDownstreamBarZ + fDownstreamBarZ/2.;
+	  			Double_t dz_bar_ver = -fDownstreamDetZ/2. + 2*fDownstreamBarZ + fDownstreamBarZ/2.;
 			
 				TGeoTranslation *xztrans = new TGeoTranslation(dx_bar,0,dz_bar_ver);
 				volDownstreamDet->AddNode(volMuDownstreamBar_ver,3e+4+l*1e+3+i_vbar+60,xztrans);   // I added a 60 here to make each horizontal + vetical

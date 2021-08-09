@@ -90,21 +90,21 @@ with ConfigRegistry.register_config("basic") as c:
         #upstream bars configuration
         c.MuFilter.NUpstreamBars = 10
         c.MuFilter.UpstreamBarX = c.MuFilter.UpstreamDetX
-        c.MuFilter.UpstreamBarY = c.MuFilter.UpstreamDetY/c.MuFilter.NUpstreamBars #computed for staggering
+        # c.MuFilter.UpstreamBarY = c.MuFilter.UpstreamDetY/c.MuFilter.NUpstreamBars #computed for staggering
         c.MuFilter.UpstreamBarZ = 1*u.cm
 
         #downstream bars configuration
         c.MuFilter.NDownstreamBars = 60 #n.d.r. both for x and y in this case
         c.MuFilter.DownstreamBarX = c.MuFilter.DownstreamDetX
-        c.MuFilter.DownstreamBarY = c.MuFilter.DownstreamDetY/c.MuFilter.NDownstreamBars #computed for staggering
+        # c.MuFilter.DownstreamBarY = c.MuFilter.DownstreamDetY/c.MuFilter.NDownstreamBars #computed for staggering
         c.MuFilter.DownstreamBarZ = 1*u.cm
 
         c.MuFilter.DownstreamBarX_ver = c.MuFilter.DownstreamDetY/c.MuFilter.NDownstreamBars #the vertical bars cover a region only 60 x 60 cm2
-        c.MuFilter.DownstreamBarY_ver = c.MuFilter.DownstreamDetY
+        c.MuFilter.DownstreamBarY_ver = 63.5*u.cm 
         c.MuFilter.DownstreamBarZ_ver = 1*u.cm
 
         #total z thickness and position
-        c.MuFilter.Z = c.MuFilter.NUpstreamPlanes*(c.MuFilter.FeZ+c.MuFilter.UpstreamDetZ) + c.MuFilter.NDownstreamPlanes*(c.MuFilter.FeZ+c.MuFilter.DownstreamDetZ) 
+        c.MuFilter.Z = c.MuFilter.NUpstreamPlanes*(c.MuFilter.FeZ+c.MuFilter.UpstreamDetZ) + (c.MuFilter.NDownstreamPlanes - 1)*(c.MuFilter.FeZ+c.MuFilter.DownstreamDetZ) + MuFilter.DS4ZGap + c.MuFilter.DownstreamDetZ/2 #doesn't include veto
         c.MuFilter.Zcenter = c.EmulsionDet.zC+c.EmulsionDet.zdim/2+c.MuFilter.Z/2
         c.MuFilter.ShiftX = -2.8 * u.cm - c.MuFilter.X/2.
         
